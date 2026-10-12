@@ -3,6 +3,7 @@ import { createBottomTabNavigator, type BottomTabScreenProps } from '@react-navi
 import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors } from './theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeScreen, ChatScreen, JournalScreen, GoalsScreen, ProfileScreen, MoodScreen, ProgressScreen } from './screens/MainScreens';
 import type { IconName } from './components';
 
@@ -15,12 +16,14 @@ const icons: Record<keyof TabRoutes, IconName> = {
   Home: 'home-outline', Chat: 'chatbubble-ellipses-outline', Journal: 'book-outline', Goals: 'flag-outline', Profile: 'person-circle-outline',
 };
 function MainTabs() {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 8);
   return <Tab.Navigator backBehavior="history" screenOptions={({ route }) => ({
     headerShown: true, tabBarAccessibilityLabel: route.name,
     headerStyle: { backgroundColor: colors.background }, headerTintColor: colors.ink,
     headerShadowVisible: false,
     tabBarActiveTintColor: colors.primary, tabBarInactiveTintColor: colors.muted,
-    tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+    tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border, height: 64 + bottomPadding, paddingBottom: bottomPadding, paddingTop: 8 },
     tabBarLabelStyle: { fontSize: 11, fontWeight: '600' }, tabBarHideOnKeyboard: true,
     tabBarIcon: ({ color, size }) => <Ionicons accessible={false} aria-hidden={true} name={icons[route.name]} color={color} size={size} />,
   })}>

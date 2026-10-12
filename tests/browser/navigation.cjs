@@ -85,6 +85,10 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../backend/.env'), 
       await page.setViewportSize({ width, height: 844 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       assert.equal(await page.getByRole('tab').count(), 5);
+      for (const name of ['Home', 'Chat', 'Journal', 'Goals', 'Profile']) {
+        const label = await tab(name).getByText(name, { exact: true }).boundingBox();
+        assert.ok(label && label.y + label.height <= 844, `${name} label must fit inside the viewport`);
+      }
     }
     await tab('Profile').click();
     await pool.query("UPDATE auth_sessions SET created_at = now() - interval '2 days', expires_at = now() - interval '1 day' WHERE user_id = (SELECT id FROM users WHERE email = $1)", [email]);

@@ -1,0 +1,24 @@
+# Dependencies and generated output
+node_modules/
+.expo/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Local configuration and secrets: never commit real keys
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Logs and local editor files
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+# Local database data
+.pgdata/

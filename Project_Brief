@@ -1,0 +1,223 @@
+# Lumora - Project Brief
+
+## Project Overview
+
+Lumora is an AI-powered mobile application that helps people improve their lives through guidance, motivation, reflection, and personal growth.
+
+The app acts as a trusted AI companion that users can talk to about challenges, goals, decisions, productivity, confidence, relationships, stress, and life planning.
+
+The purpose of Lumora is to help users gain clarity, stay motivated, and make better decisions.
+
+---
+
+## Target Users
+
+- Students
+- Professionals
+- Entrepreneurs
+- Individuals seeking personal growth
+- Anyone looking for motivation and guidance
+
+Age: 18+
+
+---
+
+## Main Features
+
+### 1. AI Life Coach
+
+Users can chat with an AI assistant for:
+
+- Motivation
+- Personal growth
+- Goal setting
+- Productivity advice
+- Career guidance
+- Confidence building
+- Stress management
+- Decision support
+
+The AI should be positive, encouraging, respectful, and practical.
+
+---
+
+### 2. Daily Inspiration
+
+Provide:
+
+- Motivational quotes
+- Daily reflections
+- Positive affirmations
+- Growth tips
+
+---
+
+### 3. Personal Journal
+
+Allow users to:
+
+- Create journal entries
+- Review previous entries
+- Track personal reflections over time
+
+---
+
+### 4. Mood Tracker
+
+Allow users to:
+
+- Record daily mood
+- Add notes
+- View mood trends
+
+---
+
+### 5. Goals and Habits
+
+Allow users to:
+
+- Create goals
+- Create habits
+- Track progress
+- Receive reminders
+- View achievements
+
+---
+
+### 6. Dashboard
+
+Display:
+
+- Mood trends
+- Goal progress
+- Journal activity
+- Personal growth statistics
+
+---
+
+## Design Requirements
+
+The application should:
+
+- Be simple and easy to use
+- Look modern and professional
+- Have a clean mobile-first design
+- Use calming colors
+- Feel premium and trustworthy
+
+Suggested colors:
+
+- Primary: Indigo
+- Secondary: Purple
+- Accent: Teal
+
+---
+
+## Technology Requirements
+
+Frontend:
+- React Native
+- Expo
+- TypeScript
+
+Backend:
+- Node.js
+- Express
+
+Database:
+- PostgreSQL
+
+Authentication:
+- Firebase Authentication
+
+AI:
+- OpenAI API
+
+Version Control:
+- GitHub
+
+Automation:
+- GitHub Actions
+
+---
+
+## Security Requirements
+
+- Secure user authentication
+- Encrypted communication
+- Environment variables for secrets
+- Input validation
+- Privacy-first approach
+
+---
+
+## AI Personality
+
+Lumora should always be:
+
+- Helpful
+- Positive
+- Respectful
+- Encouraging
+- Empathetic
+- Professional
+
+Lumora should never:
+
+- Judge users
+- Shame users
+- Provide medical diagnoses
+- Provide legal advice
+- Encourage harmful behaviour
+
+---
+
+## Deliverables
+
+Create:
+
+- Mobile application
+- Backend API
+- Database schema
+- Authentication system
+- AI integration
+- Documentation
+- README file
+- GitHub Actions workflow
+- Docker configuration
+- Test cases
+
+---
+
+## Repository Structure
+
+```text
+lumora/
+│
+├── mobile-app/
+├── backend/
+├── database/
+├── docs/
+├── tests/
+├── .github/
+│   └── workflows/
+├── README.md
+└── PROJECT_BRIEF.md
+```
+
+---
+
+## Success Criteria
+
+A user should be able to:
+
+1. Create an account.
+2. Log in securely.
+3. Chat with Lumora AI.
+4. Save journal entries.
+5. Track moods.
+6. Track goals and habits.
+7. View personal progress.
+8. Receive daily motivation.
+
+The application should be production-ready and deployable from GitHub.

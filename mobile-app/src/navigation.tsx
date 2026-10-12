@@ -4,7 +4,8 @@ import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors } from './theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HomeScreen, ChatScreen, JournalScreen, GoalsScreen, ProfileScreen, MoodScreen, ProgressScreen } from './screens/MainScreens';
+import { HomeScreen, JournalScreen, GoalsScreen, ProfileScreen, MoodScreen, ProgressScreen } from './screens/MainScreens';
+import { ChatScreen } from './screens/ChatScreen';
 import type { IconName } from './components';
 
 export type RootRoutes = { Main: undefined; Mood: undefined; Progress: undefined };

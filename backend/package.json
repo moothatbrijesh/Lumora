@@ -15,7 +15,8 @@
     "db:migrate": "tsx src/db-cli.ts migrate",
     "db:seed": "tsx src/db-cli.ts seed",
     "db:check": "tsx src/db-cli.ts check",
-    "test:db": "tsx --test tests/*.integration.ts"
+    "test:db": "tsx --test tests/*.integration.ts",
+    "ai:check": "tsx src/check-ai.ts"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -23,7 +24,9 @@
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.1",
     "helmet": "^8.3.0",
-    "pg": "^8.23.1"
+    "openai": "^7.32.0",
+    "pg": "^8.23.1",
+    "undici": "^8.11.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

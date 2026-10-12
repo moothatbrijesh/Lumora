@@ -1,5 +1,8 @@
 # Step 5 — Navigate Lumora
 
+This documents the Step 5 checkpoint. [Step 6](STEP_06.md) replaces the Chat
+placeholder with the OpenAI integration.
+
 The signed-in app now has a consistent design and seven screens. These files are
 already created; no source-code copying is needed.
 

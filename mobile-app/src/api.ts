@@ -5,11 +5,13 @@ export class ApiError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }
 
-export async function api<T>(path: string, options: { method?: string; body?: unknown; token?: string } = {}): Promise<T> {
+export type ApiOptions = { method?: string; body?: unknown; token?: string; timeoutMs?: number };
+
+export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const base = process.env.EXPO_PUBLIC_API_URL?.trim().replace(/\/+$/, '');
   if (!base) throw new ApiError('Connection setup is needed. Follow the README and restart Expo.', 0);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 12000);
   try {
     const response = await fetch(`${base}${path}`, {
       method: options.method ?? 'GET',

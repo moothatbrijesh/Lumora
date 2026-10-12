@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { api, ApiError, type AuthResult, type User } from '../api';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
+import { api, ApiError, type AuthResult, type User, type ApiOptions } from '../api';
 import { readSession, saveSession, clearSession } from '../session';
 
 type Auth = {
@@ -8,11 +8,14 @@ type Auth = {
   authenticate: (mode: 'login' | 'register', body: { email: string; password: string; displayName?: string }) => Promise<void>;
   checkSession: () => Promise<void>;
   logout: () => Promise<void>;
+  request: <T>(path: string, options?: Omit<ApiOptions, 'token'>) => Promise<T>;
 };
 const Context = createContext<Auth | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<{ user: User; token: string } | null>(null);
+  const currentSession = useRef(session);
+  currentSession.current = session;
   const [defaultMode, setDefaultMode] = useState<'login' | 'register'>('register');
   const [busy, setBusy] = useState(false);
   const [restoring, setRestoring] = useState(true);
@@ -82,8 +85,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     finally { setBusy(false); }
   }
 
+  const request = useCallback(async <T,>(path: string, options: Omit<ApiOptions, 'token'> = {}): Promise<T> => {
+    const token = session?.token;
+    if (!token) throw new ApiError('Please sign in again.', 401);
+    try { return await api<T>(path, { ...options, token }); }
+    catch (error) {
+      if (error instanceof ApiError && error.status === 401 && currentSession.current?.token === token) {
+        await clearSession().catch(() => undefined);
+        if (currentSession.current?.token === token) {
+          setDefaultMode('login'); setSession(null);
+          setNotice('Your session has ended. Please sign in again.');
+        }
+      }
+      throw error;
+    }
+  }, [session?.token]);
+
   return <Context.Provider value={{ defaultMode, user: session?.user ?? null, busy, restoring, restoreFailed, notice,
-    restore, authenticate, checkSession, logout }}>{children}</Context.Provider>;
+    restore, authenticate, checkSession, logout, request }}>{children}</Context.Provider>;
 }
 
 export function useAuth() {

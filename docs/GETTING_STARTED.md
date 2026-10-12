@@ -48,6 +48,7 @@ We will finish and check each step before starting the next.
    Implemented; see [Step 5](STEP_05.md).
 6. **AI chat:** connect the backend to OpenAI with supportive, inclusive guidance,
    appropriate wellbeing boundaries, and clear error and loading states.
+   Implemented and tested with fixtures; live check awaits a key. See [Step 6](STEP_06.md).
 7. **Personal growth features:** add daily quotes, journal, goals, moods,
    dashboard, profile, and settings with user-specific storage.
 8. **Quality checks:** add automated tests as features arrive, then validate the

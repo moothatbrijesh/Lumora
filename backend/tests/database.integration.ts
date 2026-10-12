@@ -21,7 +21,7 @@ test('PostgreSQL integration in an isolated test schema', async t => {
     await admin.query(`CREATE SCHEMA "${schema}"`);
     await t.test('readiness fails before migrations and passes afterwards', async () => {
       await assert.rejects(() => checkDatabase(pool));
-      assert.deepEqual(await migrate(pool), ['001_initial.sql', '002_auth_sessions.sql']);
+      assert.deepEqual(await migrate(pool), ['001_initial.sql', '002_auth_sessions.sql', '003_chat_requests.sql']);
       await checkDatabase(pool);
     });
     await t.test('migration reruns are safe and changed checksums are rejected', async () => {

@@ -32,21 +32,10 @@ export function HomeScreen({ navigation }: HomeProps) {
       <View style={{ flex: 1, gap: 4 }}><Text style={[ui.heading, { fontSize: 17 }]}>{action.label}</Text><Text style={ui.small}>{action.description}</Text></View>
       <Ionicons accessible={false} aria-hidden={true} name="chevron-forward" size={18} color={colors.muted} />
     </Pressable>)}
-    <Text style={ui.small}>Your account is ready. Journaling, mood tracking, goals, and AI conversations are coming soon.</Text>
+    <Text style={ui.small}>Your account is ready. Open Chat for a little perspective. Journaling, mood tracking, and goals are coming soon.</Text>
   </Screen>;
 }
 
-export function ChatScreen() {
-  return <Screen>
-    <Text style={ui.eyebrow}>A LITTLE PERSPECTIVE</Text>
-    <Text accessibilityRole="header" style={ui.title}>A space to talk it through.</Text>
-    <Text style={ui.body}>Explore a decision, find motivation, or take a moment to reflect.</Text>
-    <ComingSoon icon="chatbubble-ellipses-outline" title="Your AI companion" description="Conversations will be available soon. You can’t send messages yet." />
-    <View style={ui.mintCard}><Text accessibilityRole="header" style={ui.heading}>Something to reflect on</Text>
-      <Text style={ui.body}>What is one thing you can make a little easier for yourself today?</Text></View>
-    <Text style={ui.small}>Guidance that respects your background, beliefs, and choices.</Text>
-  </Screen>;
-}
 export function JournalScreen() {
   return <Screen>
     <Text style={ui.eyebrow}>ROOM FOR YOUR THOUGHTS</Text>

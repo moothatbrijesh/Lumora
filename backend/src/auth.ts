@@ -3,6 +3,7 @@ import { Router, type Request } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import type { Pool } from 'pg';
 import { hashPassword, verifyPassword } from './passwords.js';
+import { sessionUser } from './session-user.js';
 
 const sessionDurationMs = 7 * 24 * 60 * 60 * 1000;
 const digest = (token: string) => createHash('sha256').update(token).digest('hex');
@@ -84,14 +85,11 @@ export function createAuthRouter(pool: Pool) {
   });
 
   router.get('/me', async (request, response) => {
-    const token = bearer(request);
-    const result = token ? await pool.query(`SELECT u.id, u.email, u.display_name FROM auth_sessions s
-      JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()`, [digest(token)]) : null;
-    if (!result?.rowCount) {
-      response.status(401).json({ error: 'Please sign in again.' });
-      return;
+    const user = await sessionUser(pool, request);
+    if (!user) {
+      response.status(401).json({ error: 'Please sign in again.' }); return;
     }
-    response.json({ user: publicUser(result.rows[0]) });
+    response.json({ user: publicUser(user) });
   });
 
   router.post('/logout', async (request, response) => {

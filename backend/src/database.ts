@@ -9,7 +9,7 @@ export function createDatabasePool(connectionString: string | undefined) {
 export async function checkDatabase(pool: Pool) {
   // Proves connectivity and that both the data and authentication schema exist.
   const result = await pool.query(
-    "SELECT count(*) = 2 AS ready FROM schema_migrations WHERE name IN ('001_initial.sql', '002_auth_sessions.sql')",
+    "SELECT count(*) = 3 AS ready FROM schema_migrations WHERE name IN ('001_initial.sql', '002_auth_sessions.sql', '003_chat_requests.sql')",
   );
   if (!result.rows[0]?.ready) throw new Error('Database migrations are missing.');
 }

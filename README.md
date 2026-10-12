@@ -3,15 +3,15 @@
 A supportive personal growth companion for people of every background and belief.
 Built with Expo, React Native, TypeScript, and a Node.js API.
 
-**Current milestone: Step 5 — mobile navigation and main screens.** Registration,
-login, protected profile, and logout work. Signed-in users can explore Home, Chat,
-Journal, Goals, Profile, Mood, and Progress. Chat and personal-growth features are
-clearly marked as coming soon; their screens do not yet read or write user data.
-The backend uses PostgreSQL for accounts and expiring sessions. Deployment is
-still pending; see Step 4 for authentication limitations.
+**Current milestone: Step 6 — AI chat integration implemented.** Registration,
+login, profile, navigation, and account-specific chat history are implemented.
+Chat calls OpenAI through the backend and supports retries and deletion. Automated
+checks pass with test providers; **live OpenAI validation still requires an API key**.
+Journal, goals, mood, and progress remain placeholders. Deployment is pending.
 
 ## Start here
 
+- [Step 6: configure OpenAI and use chat](docs/STEP_06.md)
 - [Step 5: main screens, navigation, and browser tests](docs/STEP_05.md)
 - [Step 4: registration, login, and session testing](docs/STEP_04.md)
 - [Step 3: start PostgreSQL, create tables, and test](docs/STEP_03.md)
@@ -25,7 +25,8 @@ still pending; see Step 4 for authentication limitations.
 Use **Node.js 24 LTS** and the npm version included with it. If you use nvm, run
 `nvm install` and `nvm use` from the repository root; `.nvmrc` selects Node 24.
 Use Docker Desktop (or Docker Engine with Compose) for PostgreSQL.
-You do not need an OpenAI key yet.
+AI chat requires a backend-only OpenAI API key; see Step 6. Other features and
+automated tests can run without it.
 
 Run the following from your local Lumora checkout. Keep each server terminal open.
 
@@ -112,18 +113,20 @@ an installable app or submit anything to an app store.
 | POST | `/auth/logout` | Revoke the current session |
 
 The health endpoint verifies the API process. Readiness verifies PostgreSQL and
-both migrations. Unknown routes return a JSON 404. The protected profile endpoint
+all three migrations. Unknown routes return a JSON 404. The protected profile endpoint
 uses the session owner; journal, goal, and mood endpoints are not exposed yet.
 
 For database integration tests, run `docker compose --profile test up -d --wait`
 from the root, then `npm run test:db` from `backend/`.
+
+Chat endpoints and their request formats are documented in [Step 6](docs/STEP_06.md#api-endpoints).
 
 ## Secrets and source control
 
 `.env` files are ignored by Git. `.env.example` files are safe templates.
 `EXPO_PUBLIC_API_URL` is a public backend address; **everything prefixed with
 EXPO_PUBLIC_ is included in the app and must never contain a secret**. OpenAI
-keys will belong only on the backend when we implement AI chat.
+keys belong only on the backend as `LUMORA_OPENAI_API_KEY`.
 
 Commit both `package-lock.json` files with source changes so `npm ci` installs
 the same dependency versions. Do not commit `node_modules/` or generated `dist/`.

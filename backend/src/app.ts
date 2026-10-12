@@ -4,8 +4,10 @@ import type { ErrorRequestHandler } from 'express';
 import helmet from 'helmet';
 import type { Pool } from 'pg';
 import { createAuthRouter } from './auth.js';
+import { createChatRouter } from './chat.js';
+import type { ChatResponder } from './openai-chat.js';
 
-export function createApp(databaseCheck?: () => Promise<void>, pool?: Pool) {
+export function createApp(databaseCheck?: () => Promise<void>, pool?: Pool, chatResponder?: ChatResponder) {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
@@ -28,7 +30,10 @@ export function createApp(databaseCheck?: () => Promise<void>, pool?: Pool) {
       response.status(503).json({ status: 'unavailable', service: 'lumora-api' });
     }
   });
-  if (pool) app.use('/auth', createAuthRouter(pool));
+  if (pool) {
+    app.use('/auth', createAuthRouter(pool));
+    app.use('/chat', createChatRouter(pool, chatResponder));
+  }
   else app.use('/auth', (_request, response) => {
     response.status(503).json({ error: 'Account service is unavailable. Please try again later.' });
   });

@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import type { AIDiagnostic } from './ai-types.js';
 
 // Only fixed, reviewed text is printed. Never interpolate an upstream message,
 // URL, header, error code, response body, or credential into a diagnostic.
@@ -14,9 +15,10 @@ export const diagnosticMessages = {
   connection: 'The request could not connect. Check Internet, DNS, firewall, and proxy settings for api.openai.com.',
   provider: 'The service returned a server error (HTTP 5xx). Try again later and check the OpenAI service status.',
   response: 'A complete, usable text reply was not received. Check model compatibility and retry.',
+  configuration: 'AI configuration is invalid. Check the selected provider, model name, and proxy settings.',
   unknown: 'The failure could not be categorized safely. Check the API key, model access, billing, and network settings.',
 } as const;
-export type OpenAIDiagnostic = keyof typeof diagnosticMessages;
+export type OpenAIDiagnostic = AIDiagnostic;
 
 const tlsCodes = new Set([
   'UNABLE_TO_GET_ISSUER_CERT_LOCALLY', 'UNABLE_TO_GET_ISSUER_CERT',
@@ -34,6 +36,14 @@ export function diagnoseOpenAI(error: unknown): OpenAIDiagnostic {
     if (error.status === 400 || error.status === 422) return 'invalid_request';
     if (error.status >= 500 && error.status <= 599) return 'provider';
   }
+  const transport = diagnoseTransport(error);
+  if (transport) return transport;
+  if (error instanceof OpenAI.APIConnectionTimeoutError) return 'timeout';
+  if (error instanceof OpenAI.APIConnectionError) return 'connection';
+  return 'unknown';
+}
+
+export function diagnoseTransport(error: unknown): 'tls' | 'timeout' | undefined {
   // Node fetch and the SDK wrap TLS errors in causes; some connection failures
   // are AggregateErrors. Bound traversal and handle cycles without serializing.
   const pending: unknown[] = [error];
@@ -47,7 +57,6 @@ export function diagnoseOpenAI(error: unknown): OpenAIDiagnostic {
     pending.push(detail.cause);
     if (Array.isArray(detail.errors)) pending.push(...detail.errors.slice(0, 8));
   }
-  if (error instanceof OpenAI.APIConnectionTimeoutError) return 'timeout';
-  if (error instanceof OpenAI.APIConnectionError) return 'connection';
-  return 'unknown';
+  if (error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)) return 'timeout';
+  return undefined;
 }

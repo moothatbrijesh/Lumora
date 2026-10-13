@@ -5,13 +5,14 @@ Built with Expo, React Native, TypeScript, and a Node.js API.
 
 **Current milestone: Step 6 — AI chat integration implemented.** Registration,
 login, profile, navigation, and account-specific chat history are implemented.
-Chat calls OpenAI through the backend and supports retries and deletion. Automated
-checks pass with test providers; **live OpenAI validation still requires an API key**.
+Chat uses **Gemini by default**, with OpenAI available through explicit backend
+configuration, and supports retries and deletion. Automated checks use test
+providers; **live Gemini validation requires your own API key and available quota**.
 Journal, goals, mood, and progress remain placeholders. Deployment is pending.
 
 ## Start here
 
-- [Step 6: configure OpenAI and use chat](docs/STEP_06.md)
+- [Step 6: configure Gemini and use chat](docs/STEP_06.md)
 - [Step 5: main screens, navigation, and browser tests](docs/STEP_05.md)
 - [Step 4: registration, login, and session testing](docs/STEP_04.md)
 - [Step 3: start PostgreSQL, create tables, and test](docs/STEP_03.md)
@@ -25,8 +26,11 @@ Journal, goals, mood, and progress remain placeholders. Deployment is pending.
 Use **Node.js 24 LTS** and the npm version included with it. If you use nvm, run
 `nvm install` and `nvm use` from the repository root; `.nvmrc` selects Node 24.
 Use Docker Desktop (or Docker Engine with Compose) for PostgreSQL.
-AI chat requires a backend-only OpenAI API key; see Step 6. Other features and
-automated tests can run without it.
+AI chat requires a backend-only Gemini key (or an explicitly selected OpenAI key);
+see Step 6. Gemini has a limited free tier for eligible accounts, regions, and
+models. Check your project's tier and current [pricing](https://ai.google.dev/gemini-api/docs/pricing);
+this setup does not require enabling billing. Other features and automated tests
+can run without an API key.
 
 Run the following from your local Lumora checkout. Keep each server terminal open.
 
@@ -77,7 +81,8 @@ npm run web
 ```
 
 On Windows PowerShell, use `Copy-Item .env.example .env` if `.env` does not already
-exist, then run `npm run web`. Register or sign in, open **Profile**, and tap **Check connection**.
+exist, then run `npm.cmd run web`. Use `npm.cmd` for the other npm commands too.
+Register or sign in, open **Profile**, and tap **Check connection**.
 It should say **Lumora is connected and ready.** See the detailed guides for
 phone setup and cloud-environment limitations.
 
@@ -125,8 +130,15 @@ Chat endpoints and their request formats are documented in [Step 6](docs/STEP_06
 
 `.env` files are ignored by Git. `.env.example` files are safe templates.
 `EXPO_PUBLIC_API_URL` is a public backend address; **everything prefixed with
-EXPO_PUBLIC_ is included in the app and must never contain a secret**. OpenAI
-keys belong only on the backend as `LUMORA_OPENAI_API_KEY`.
+EXPO_PUBLIC_ is included in the app and must never contain a secret**. Provider
+keys belong only on the backend as `LUMORA_GEMINI_API_KEY` or
+`LUMORA_OPENAI_API_KEY`. Set `LUMORA_AI_PROVIDER=gemini` for Gemini or `openai`
+for OpenAI; leaving it unset selects Gemini. There is no automatic provider fallback.
+
+Review [Gemini's unpaid-service data-use terms](https://ai.google.dev/gemini-api/terms)
+before sharing personal information. Use fictional messages while testing. Switching
+providers preserves conversations, and sending another message shares that
+conversation's recent history with the newly selected provider.
 
 Commit both `package-lock.json` files with source changes so `npm ci` installs
 the same dependency versions. Do not commit `node_modules/` or generated `dist/`.

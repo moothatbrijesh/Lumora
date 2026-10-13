@@ -102,11 +102,11 @@ test('CLI catches startup configuration errors without printing proxy credential
   const proxy = 'http://test-user:fake-proxy-secret@[invalid';
   const result = spawnSync(process.execPath, ['--import', 'tsx', 'src/check-ai.ts'], {
     cwd: new URL('../', import.meta.url), encoding: 'utf8', timeout: 5000,
-    env: { ...process.env, LUMORA_OPENAI_API_KEY: 'test-only-not-a-real-key',
+    env: { ...process.env, LUMORA_AI_PROVIDER: 'openai', LUMORA_OPENAI_API_KEY: 'test-only-not-a-real-key',
       HTTPS_PROXY: proxy, https_proxy: proxy, HTTP_PROXY: proxy, http_proxy: proxy, OPENAI_LOG: 'debug' },
   });
   assert.equal(result.error, undefined);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /OpenAI check failed \[unknown\]/);
+  assert.match(result.stderr, /OpenAI check failed \[configuration\]/);
   assert.doesNotMatch(result.stdout + result.stderr, /fake-proxy-secret|test-user|test-only-not-a-real-key|ERR_INVALID_URL/);
 });

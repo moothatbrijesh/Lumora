@@ -5,9 +5,9 @@ import helmet from 'helmet';
 import type { Pool } from 'pg';
 import { createAuthRouter } from './auth.js';
 import { createChatRouter } from './chat.js';
-import type { ChatResponder } from './openai-chat.js';
+import type { AIProvider, ChatResponder } from './ai-types.js';
 
-export function createApp(databaseCheck?: () => Promise<void>, pool?: Pool, chatResponder?: ChatResponder) {
+export function createApp(databaseCheck?: () => Promise<void>, pool?: Pool, chatResponder?: ChatResponder, provider: AIProvider = 'gemini') {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
@@ -32,7 +32,7 @@ export function createApp(databaseCheck?: () => Promise<void>, pool?: Pool, chat
   });
   if (pool) {
     app.use('/auth', createAuthRouter(pool));
-    app.use('/chat', createChatRouter(pool, chatResponder));
+    app.use('/chat', createChatRouter(pool, chatResponder, provider));
   }
   else app.use('/auth', (_request, response) => {
     response.status(503).json({ error: 'Account service is unavailable. Please try again later.' });

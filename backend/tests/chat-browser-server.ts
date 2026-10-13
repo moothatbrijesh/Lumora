@@ -5,7 +5,7 @@ import { Pool } from 'pg';
 import { createDatabasePool, checkDatabase } from '../src/database.js';
 import { migrate } from '../src/migrations.js';
 import { createApp } from '../src/app.js';
-import { ChatProviderError } from '../src/openai-chat.js';
+import { ChatProviderError } from '../src/ai-types.js';
 
 const url = process.env.TEST_DATABASE_URL;
 if (!url || !new URL(url).pathname.endsWith('_test') || process.env.NODE_ENV === 'production') throw new Error('A disposable TEST_DATABASE_URL is required.');
@@ -22,7 +22,7 @@ const app = createApp(() => checkDatabase(pool), pool, async history => {
     failedOnce = true;
     throw new ChatProviderError(503, 'Test provider is temporarily unavailable.');
   }
-  return 'TEST FIXTURE: Choose one manageable step. This is not a live OpenAI reply.';
+  return 'TEST FIXTURE: Choose one manageable step. This is not a live AI reply.';
 });
 // Added before the application's fallback via a separate server handler is unnecessary:
 // expose metrics over IPC only, never as a production HTTP route.

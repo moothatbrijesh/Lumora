@@ -9,6 +9,7 @@ import { colors, ui } from '../theme';
 type Conversation = { id: string; title: string; updatedAt: string };
 type Message = { id: string; role: 'user' | 'assistant'; content: string; createdAt: string };
 type Pending = { conversationId: string; content: string; requestId: string };
+type ChatStatus = { configured: boolean; provider: 'gemini' | 'openai' };
 
 export function ChatScreen() {
   const { request } = useAuth();
@@ -18,6 +19,7 @@ export function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [configured, setConfigured] = useState(false);
+  const [provider, setProvider] = useState<ChatStatus['provider'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [sending, setSending] = useState(false);
@@ -27,19 +29,25 @@ export function ChatScreen() {
   const pending = useRef<Pending | null>(null);
   const sendingRef = useRef(false);
   const historyRef = useRef<ScrollView>(null);
+  const composerRef = useRef<TextInput>(null);
 
   const reload = useCallback(async () => {
-    setLoading(true); setLoadError('');
+    setLoading(true); setLoadError(''); setConfigured(false);
     try {
       const [status, history] = await Promise.all([
-        request<{ configured: boolean }>('/chat/status'),
+        request<ChatStatus>('/chat/status'),
         request<{ conversations: Conversation[] }>('/chat/conversations'),
       ]);
-      setConfigured(status.configured); setConversations(history.conversations);
+      setConfigured(status.configured); setProvider(status.provider); setConversations(history.conversations);
     } catch { setLoadError('Chat could not load. Check your connection and try again.'); }
     finally { setLoading(false); }
   }, [request]);
   useEffect(() => { void reload(); }, [reload]);
+
+  function newConversation() {
+    setSelected(null); setMessages([]); setError(''); setConfirmDelete(false); pending.current = null;
+    composerRef.current?.focus();
+  }
 
   async function openConversation(id: string) {
     setWorking(true); setError(''); setConfirmDelete(false);
@@ -57,7 +65,7 @@ export function ChatScreen() {
   }
   async function send() {
     const content = draft.trim();
-    if (!content || sendingRef.current || !configured || Array.from(content).length > 4000) return;
+    if (!content || sendingRef.current || loading || working || !configured || loadError || Array.from(content).length > 4000) return;
     sendingRef.current = true; setSending(true); setError('');
     try {
       let id = selected;
@@ -96,12 +104,13 @@ export function ChatScreen() {
   }
   const busy = loading || working || sending;
   const hasDraft = draft.length > 0;
+  const providerLabel = provider === 'gemini' ? 'Gemini (Google)' : provider === 'openai' ? 'OpenAI' : 'the configured AI provider';
   return <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={headerHeight}>
     <View style={styles.top}>
       <Text accessibilityRole="header" style={ui.heading}>A space to talk it through.</Text>
-      <Text style={ui.small}>Messages are sent to OpenAI for replies and saved to your account. You can delete conversations.</Text>
+      <Text style={ui.small}>Your message and recent conversation history go to {providerLabel} for replies. Conversations are saved to your account; you can delete them.</Text>
       <ScrollView horizontal contentContainerStyle={styles.choices} showsHorizontalScrollIndicator={false}>
-        <Pressable accessibilityRole="button" disabled={busy || hasDraft} onPress={() => { setSelected(null); setMessages([]); setError(''); setConfirmDelete(false); }} style={[styles.chip, !selected && styles.selected, (busy || hasDraft) && ui.dim]}>
+        <Pressable accessibilityRole="button" accessibilityState={{ selected: !selected, disabled: busy || hasDraft }} disabled={busy || hasDraft} onPress={newConversation} style={[styles.chip, !selected && styles.selected, (busy || hasDraft) && ui.dim]}>
           <Text style={styles.chipText}>New conversation</Text>
         </Pressable>
         {conversations.map(item => <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Open conversation: ${item.title}`} accessibilityState={{ selected: item.id === selected, disabled: busy || hasDraft }}
@@ -110,16 +119,17 @@ export function ChatScreen() {
         </Pressable>)}
       </ScrollView>
       {loading ? <ActivityIndicator accessibilityLabel="Loading conversations" color={colors.primary} /> : null}
-      {loadError || !configured ? <View style={{ gap: 8 }}>
-        <Text accessibilityLiveRegion="polite" style={ui.small}>{loadError || 'AI chat is not ready yet. You can still browse saved conversations.'}</Text>
+      {!loading && (loadError || !configured) ? <View style={{ gap: 8 }}>
+        <Text accessibilityLiveRegion="polite" style={ui.small}>{loadError || `AI replies are unavailable until ${providerLabel} is configured. You can write a draft or browse saved conversations.`}</Text>
         <Button label="Check chat again" onPress={() => void reload()} disabled={busy} secondary />
       </View> : null}
     </View>
     <ScrollView ref={historyRef} style={{ flex: 1 }} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled" onContentSizeChange={() => historyRef.current?.scrollToEnd({ animated: false })}>
+      {provider === 'gemini' && <Text style={ui.small}>If this project uses Gemini’s free tier, Google may use conversations to improve its products. Use fictional messages while testing.</Text>}
       {messages.length === 0 ? <View style={ui.lavenderCard}>
         <Text accessibilityRole="header" style={ui.heading}>What’s on your mind?</Text>
         <Text style={ui.body}>Explore a decision, find motivation, or choose one small step forward.</Text>
-        {['Help me plan a manageable goal.', 'How can I make a difficult decision?'].map(prompt => <Pressable key={prompt} accessibilityRole="button" disabled={busy || !configured} onPress={() => setDraft(prompt)} style={styles.chip}><Text style={styles.chipText}>{prompt}</Text></Pressable>)}
+        {['Help me plan a manageable goal.', 'How can I make a difficult decision?'].map(prompt => <Pressable key={prompt} accessibilityRole="button" disabled={busy} onPress={() => { setDraft(prompt); composerRef.current?.focus(); }} style={styles.chip}><Text style={styles.chipText}>{prompt}</Text></Pressable>)}
       </View> : messages.map(message => <View key={message.id} style={[styles.bubble, message.role === 'user' && styles.userBubble]}>
         <Text style={styles.speaker}>{message.role === 'user' ? 'You' : 'Lumora · AI'}</Text>
         <Text selectable style={ui.body}>{message.content}</Text>
@@ -135,7 +145,7 @@ export function ChatScreen() {
       </>}
     </ScrollView>
     <View style={styles.composer}>
-      <TextInput accessibilityLabel="Message to Lumora" value={draft} onChangeText={setDraft} multiline editable={!busy && configured && !loadError}
+      <TextInput ref={composerRef} accessibilityLabel="Message to Lumora" value={draft} onChangeText={setDraft} multiline editable={!busy}
         style={styles.input} placeholder="Share what’s on your mind…" placeholderTextColor={colors.muted} />
       <Text style={ui.small}>{Array.from(draft).length}/4000 characters</Text>
       <Button label={sending ? 'Waiting for reply…' : 'Send message'} onPress={() => void send()} disabled={busy || !configured || Boolean(loadError) || !draft.trim() || Array.from(draft.trim()).length > 4000} />

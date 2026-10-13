@@ -1,16 +1,19 @@
 import 'dotenv/config';
-import { configuredResponder, formatOpenAICheckFailure } from './openai-chat.js';
+import { configuredResponder, formatAICheckFailure, providerKeyName, providerName, selectedProvider } from './ai-provider.js';
+import type { AIProvider } from './ai-types.js';
 
+let provider: AIProvider | undefined;
 try {
-  const respond = configuredResponder();
+  provider = selectedProvider();
+  const respond = configuredResponder(provider);
   if (!respond) {
-    console.error('OpenAI check not run: configure LUMORA_OPENAI_API_KEY securely, then retry.');
+    console.error(`${providerName(provider)} check not run: configure ${providerKeyName(provider)} securely, then retry.`);
     process.exitCode = 1;
   } else {
     await respond([{ role: 'user', content: 'Suggest one small, realistic productivity habit in one sentence.' }]);
-    console.log('OpenAI connection verified: received a complete, non-empty reply. This used one billable API request.');
+    console.log(`${providerName(provider)} connection verified: received a complete, non-empty reply. This used one API request; free quota or charges depend on your project and model.`);
   }
 } catch (error) {
-  console.error(formatOpenAICheckFailure(error));
+  console.error(formatAICheckFailure(error, provider));
   process.exitCode = 1;
 }

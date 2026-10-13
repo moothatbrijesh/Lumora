@@ -12,7 +12,7 @@ Each part of the app has its own folder:
 | Path | Purpose |
 | --- | --- |
 | `mobile-app/` | Expo and TypeScript mobile app: screens, navigation, and API client |
-| `backend/` | Node.js API: authentication, validation, and server-side OpenAI calls |
+| `backend/` | Node.js API: authentication, validation, and server-side Gemini or OpenAI calls |
 | `database/` | PostgreSQL schema, migrations, and development sample data |
 | `tests/` | Integration and end-to-end tests; component tests may also live beside code |
 | `docs/` | Beginner setup, architecture, and deployment instructions |
@@ -46,9 +46,11 @@ We will finish and check each step before starting the next.
    Implemented; see the Step 4 guide. Other personal-data endpoints come later.
 5. **Mobile design and navigation:** five tabs plus Mood and Progress screens.
    Implemented; see [Step 5](STEP_05.md).
-6. **AI chat:** connect the backend to OpenAI with supportive, inclusive guidance,
-   appropriate wellbeing boundaries, and clear error and loading states.
-   Implemented and tested with fixtures; live check awaits a key. See [Step 6](STEP_06.md).
+6. **AI chat:** connect the backend to Gemini by default, with OpenAI as an explicit
+   option, supportive guidance, and clear error and loading states. The integration
+   uses test fixtures for automated checks; live Gemini access still requires your
+   key and available project quota. See [Step 6](STEP_06.md) for Windows setup and
+   free-tier data-use considerations.
 7. **Personal growth features:** add daily quotes, journal, goals, moods,
    dashboard, profile, and settings with user-specific storage.
 8. **Quality checks:** add automated tests as features arrive, then validate the
@@ -72,6 +74,10 @@ creating paid resources, we will check current pricing and confirm the choice.
 Public app-store releases need developer accounts and store review; development
 can begin using Expo Go without publishing to a store.
 
-OpenAI requests will run only on the backend. Never place an OpenAI secret key
-in the mobile app, GitHub source files, or chat. We will document secure secret
-configuration when the integration needs it.
+AI requests run only on the backend. Never place a Gemini or OpenAI secret key in
+the mobile app, GitHub source files, or chat. [Step 6](STEP_06.md) documents the
+backend-only `LUMORA_GEMINI_API_KEY` and explicit `LUMORA_AI_PROVIDER` selection.
+Gemini's limited free tier depends on account, region, model, and quota; it is not
+unlimited free hosting for the app. Use fictional messages until you have reviewed
+the provider's current data-use terms. Switching providers does not delete history;
+the next send shares recent conversation history with the selected provider.

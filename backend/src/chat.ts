@@ -3,7 +3,7 @@ import { Router, type ErrorRequestHandler } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import type { Pool, PoolClient } from 'pg';
 import { sessionUser } from './session-user.js';
-import { ChatProviderError, type ChatInput, type ChatResponder } from './openai-chat.js';
+import { ChatProviderError, type AIProvider, type ChatInput, type ChatResponder } from './ai-types.js';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const messageColumns = 'id, role, content, created_at AS "createdAt"';
@@ -13,7 +13,7 @@ async function owned(client: PoolClient, conversationId: string, userId: string,
   if (!result.rowCount) throw publicError(404, 'Conversation not found.');
 }
 
-export function createChatRouter(pool: Pool, respond?: ChatResponder) {
+export function createChatRouter(pool: Pool, respond?: ChatResponder, provider: AIProvider = 'gemini') {
   const router = Router();
   let activeRequests = 0;
   router.use(async (request, response, next) => {
@@ -28,7 +28,7 @@ export function createChatRouter(pool: Pool, respond?: ChatResponder) {
     standardHeaders: 'draft-8', legacyHeaders: false,
     message: { error: 'You have reached the chat request limit. Please try again in ten minutes.' } });
   router.get('/status', (_request, response) => {
-    response.json({ configured: Boolean(respond), maxMessageLength: 4000 });
+    response.json({ configured: Boolean(respond), maxMessageLength: 4000, provider });
   });
   router.get('/conversations', async (_request, response) => {
     const rows = await pool.query(`SELECT id, title, updated_at AS "updatedAt" FROM conversations

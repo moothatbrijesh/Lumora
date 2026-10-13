@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { configuredResponder } from './openai-chat.js';
+import { configuredResponder, selectedProvider } from './ai-provider.js';
 import { createApp } from './app.js';
 import { createDatabasePool, checkDatabase } from './database.js';
 
@@ -10,7 +10,8 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 
 const pool = process.env.DATABASE_URL ? createDatabasePool(process.env.DATABASE_URL) : undefined;
 pool?.on('error', () => console.error('An idle database connection failed. PostgreSQL may be restarting.'));
-const server = createApp(pool ? () => checkDatabase(pool) : undefined, pool, configuredResponder()).listen(port, '0.0.0.0');
+const provider = selectedProvider();
+const server = createApp(pool ? () => checkDatabase(pool) : undefined, pool, configuredResponder(provider), provider).listen(port, '0.0.0.0');
 server.on('listening', () => {
   console.log(`Lumora API listening on port ${port}`);
 });

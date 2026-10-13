@@ -8,7 +8,7 @@ import { Pool } from 'pg';
 import { createApp } from '../src/app.js';
 import { createDatabasePool, checkDatabase } from '../src/database.js';
 import { migrate } from '../src/migrations.js';
-import { ChatProviderError, type ChatInput } from '../src/openai-chat.js';
+import { ChatProviderError, type ChatInput } from '../src/ai-types.js';
 
 test('Private chat with PostgreSQL and a test-only responder', async t => {
   const url = process.env.TEST_DATABASE_URL;
@@ -41,6 +41,7 @@ test('Private chat with PostgreSQL and a test-only responder', async t => {
     await t.test('chat requires a valid session', async () => {
       assert.equal((await fetch(`${base}/chat/conversations`)).status, 401);
       assert.equal((await request('/status', 'GET', undefined, 'f'.repeat(64))).status, 401);
+      assert.deepEqual(await (await request('/status')).json(), { configured: true, maxMessageLength: 4000, provider: 'gemini' });
     });
     await t.test('list, read, send, and delete enforce session ownership', async () => {
       const created = await request('/conversations', 'POST', { userId: randomUUID() });

@@ -71,6 +71,34 @@ check project billing, key permissions, model access, and network connectivity.
 Restart an existing backend after changing secret settings; stop its terminal
 with Ctrl+C before running `npm run dev` again.
 
+If the check fails, its category identifies the next troubleshooting step without
+printing provider messages, request content, or your key:
+
+| Category | Next step |
+| --- | --- |
+| `authentication` | Check that the key is correct and still active |
+| `permission` | Check project/key access to Responses and the model; check any network gateway denial |
+| `quota` | Check API billing, remaining credit, and project limits |
+| `rate_limit` | Check usage/limits and wait before retrying; this is not proof that credit is available |
+| `model_access` / `invalid_request` | Check model availability and Responses API compatibility |
+| `tls` | Check trusted certificates and the system clock |
+| `connection` / `timeout` | Check access to `api.openai.com`, including proxy, DNS, and firewall settings |
+| `provider` | Check OpenAI service status and retry later |
+| `response` / `unknown` | Share the safe category message for further diagnosis |
+
+On Windows with Node 24, when a work network's certificate is already trusted by
+Windows, enable use of the Windows certificate store in the same PowerShell window:
+
+```powershell
+$env:NODE_USE_SYSTEM_CA = "1"
+npm.cmd run ai:check
+```
+
+This retains HTTPS certificate verification. If a certificate error persists, ask
+your IT team for the appropriate trusted certificate configuration. The setting
+applies only to that PowerShell session. Every live retry can incur API charges.
+The SDK's logging is explicitly off to keep upstream details out of these checks.
+
 ## 4. Open the app and try one conversation
 
 In a second terminal, from the repository root:
@@ -166,7 +194,7 @@ npm run typecheck
 npm run export -- --max-workers 2
 ```
 
-The backend has 8 HTTP/SDK tests and 30 database/auth/chat checks (33 results
+The backend has 12 HTTP/SDK tests and 30 database/auth/chat checks (33 results
 including their parent tests). The SDK uses a fake HTTP transport; database tests
 use isolated schemas in the separate test database. Tests cover ownership,
 validation, context, ordered persistence, concurrent sends, rollback, expiry,

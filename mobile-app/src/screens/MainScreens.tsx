@@ -5,12 +5,12 @@ import { useAuth } from '../auth/AuthProvider';
 import { api } from '../api';
 import { Brand, Button, ComingSoon, Screen, type IconName } from '../components';
 import { colors, ui } from '../theme';
-import type { HomeProps } from '../navigation';
+import type { HomeProps, ProfileProps } from '../navigation';
 
 export function HomeScreen({ navigation }: HomeProps) {
   const { user, notice } = useAuth();
   const actions: { label: string; description: string; icon: IconName; open: () => void }[] = [
-    { label: 'Check in with yourself', description: 'Explore your mood', icon: 'heart-outline', open: () => navigation.navigate('Mood') },
+    { label: 'Check in with yourself', description: 'Save your daily mood', icon: 'heart-outline', open: () => navigation.navigate('Mood') },
     { label: 'Make space to reflect', description: 'Explore your journal', icon: 'book-outline', open: () => navigation.navigate('Journal') },
     { label: 'See your journey', description: 'Explore your progress', icon: 'trending-up-outline', open: () => navigation.navigate('Progress') },
   ];
@@ -32,7 +32,7 @@ export function HomeScreen({ navigation }: HomeProps) {
       <View style={{ flex: 1, gap: 4 }}><Text style={[ui.heading, { fontSize: 17 }]}>{action.label}</Text><Text style={ui.small}>{action.description}</Text></View>
       <Ionicons accessible={false} aria-hidden={true} name="chevron-forward" size={18} color={colors.muted} />
     </Pressable>)}
-    <Text style={ui.small}>Your account is ready. Open Chat for a little perspective. Journaling, mood tracking, and goals are coming soon.</Text>
+    <Text style={ui.small}>Open Chat for a little perspective, or take a moment to check in with yourself. Journaling and goals are coming soon.</Text>
   </Screen>;
 }
 
@@ -54,24 +54,15 @@ export function GoalsScreen() {
     <View style={ui.mintCard}><Text accessibilityRole="header" style={ui.heading}>Start small</Text><Text style={ui.body}>Think of a step you could take in ten minutes. Small and repeatable is a good place to start.</Text></View>
   </Screen>;
 }
-export function MoodScreen() {
-  return <Screen>
-    <Text style={ui.eyebrow}>WITHOUT JUDGMENT</Text>
-    <Text accessibilityRole="header" style={ui.title}>How are you feeling?</Text>
-    <Text style={ui.body}>There’s no right answer. Every feeling deserves a little space.</Text>
-    <ComingSoon icon="heart-outline" title="Your daily check-in" description="Recording a mood and adding a note will be available soon. Nothing is being recorded on this screen yet." />
-    <View style={ui.lavenderCard}><Text accessibilityRole="header" style={ui.heading}>A moment to pause</Text><Text style={ui.body}>If it feels comfortable, take a gentle breath and notice what you need right now.</Text></View>
-  </Screen>;
-}
 export function ProgressScreen() {
   return <Screen>
     <Text style={ui.eyebrow}>NOTICE THE SMALL THINGS</Text>
     <Text accessibilityRole="header" style={ui.title}>Growth takes many forms.</Text>
     <Text style={ui.body}>Your journey is more than a number or a streak.</Text>
-    <ComingSoon icon="trending-up-outline" title="Your progress, over time" description="Mood trends, journal activity, and goal progress will appear here once tracking is available. No statistics are calculated yet." />
+    <ComingSoon icon="trending-up-outline" title="Your progress, over time" description="Charts and progress summaries are coming soon. You can already view your recent moods in your daily check-in." />
   </Screen>;
 }
-export function ProfileScreen() {
+export function ProfileScreen({ navigation }: ProfileProps) {
   const { user, busy, notice, checkSession, logout } = useAuth();
   const [connection, setConnection] = useState('');
   const [checking, setChecking] = useState(false);
@@ -103,6 +94,11 @@ export function ProfileScreen() {
       <Text style={ui.small}>{Platform.OS === 'web' ? 'Browser sign-in is not kept after a page refresh.' : 'Your session is saved securely on this device.'} Sessions expire after seven days.</Text>
       <Button label="Sign out" onPress={() => void logout()} disabled={busy || checking} secondary />
     </View>
-    <ComingSoon icon="settings-outline" title="Your preferences" description="Notification and appearance settings are coming soon. No preferences can be changed yet." />
+    <View style={ui.card}>
+      <Text accessibilityRole="header" style={ui.heading}>Your preferences</Text>
+      <Text style={ui.body}>Choose whether your faith or worldview helps shape your conversations with Lumora.</Text>
+      <Button label="Faith and worldview" onPress={() => navigation.navigate('Preferences')} secondary />
+      <Text style={ui.small}>Always optional. Notification and appearance settings are coming soon.</Text>
+    </View>
   </Screen>;
 }

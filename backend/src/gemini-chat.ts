@@ -1,5 +1,5 @@
 import { EnvHttpProxyAgent, fetch as proxyFetch } from 'undici';
-import { ChatProviderError, guidance, type AIDiagnostic, type ChatResponder } from './ai-types.js';
+import { ChatProviderError, guidanceForContext, type AIDiagnostic, type ChatResponder } from './ai-types.js';
 import { diagnoseTransport } from './openai-diagnostics.js';
 
 const unavailable = (diagnostic: AIDiagnostic) => new ChatProviderError(503, 'The AI service is unavailable right now. Please try again later.', diagnostic);
@@ -16,13 +16,13 @@ export function responderFromGemini(apiKey: string, model: string, fetcher: Gemi
   // A model name can never redirect the key to another destination or add URL parameters.
   if (!/^gemini-[a-zA-Z0-9._-]+$/.test(model)) throw unavailable('configuration');
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-  return async messages => {
+  return async (messages, context) => {
     try {
       const response = await fetcher(url, {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(timeoutMs),
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: guidance }] },
+          systemInstruction: { parts: [{ text: guidanceForContext(context) }] },
           contents: messages.map(message => ({ role: message.role === 'assistant' ? 'model' : 'user', parts: [{ text: message.content }] })),
           generationConfig: { candidateCount: 1, maxOutputTokens: 4096 },
         }),

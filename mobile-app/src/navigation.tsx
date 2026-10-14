@@ -4,13 +4,16 @@ import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors } from './theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HomeScreen, JournalScreen, GoalsScreen, ProfileScreen, MoodScreen, ProgressScreen } from './screens/MainScreens';
+import { HomeScreen, JournalScreen, GoalsScreen, ProfileScreen, ProgressScreen } from './screens/MainScreens';
 import { ChatScreen } from './screens/ChatScreen';
+import { MoodScreen } from './screens/MoodScreen';
+import { PreferencesScreen } from './screens/PreferencesScreen';
 import type { IconName } from './components';
 
-export type RootRoutes = { Main: undefined; Mood: undefined; Progress: undefined };
+export type RootRoutes = { Main: undefined; Mood: undefined; Progress: undefined; Preferences: undefined };
 export type TabRoutes = { Home: undefined; Chat: undefined; Journal: undefined; Goals: undefined; Profile: undefined };
 export type HomeProps = CompositeScreenProps<BottomTabScreenProps<TabRoutes, 'Home'>, NativeStackScreenProps<RootRoutes>>;
+export type ProfileProps = CompositeScreenProps<BottomTabScreenProps<TabRoutes, 'Profile'>, NativeStackScreenProps<RootRoutes>>;
 const Tab = createBottomTabNavigator<TabRoutes>();
 const Stack = createNativeStackNavigator<RootRoutes>();
 const icons: Record<keyof TabRoutes, IconName> = {
@@ -42,6 +45,7 @@ export function AppNavigation() {
       <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
       <Stack.Screen name="Mood" component={MoodScreen} options={{ title: 'Mood check-in' }} />
       <Stack.Screen name="Progress" component={ProgressScreen} options={{ title: 'Your progress' }} />
+      <Stack.Screen name="Preferences" component={PreferencesScreen} options={{ title: 'Your preferences', headerBackTitle: 'Profile' }} />
     </Stack.Navigator>
   </NavigationContainer>;
 }

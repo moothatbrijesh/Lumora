@@ -4,6 +4,7 @@ import { rateLimit } from 'express-rate-limit';
 import type { Pool, PoolClient } from 'pg';
 import { sessionUser } from './session-user.js';
 import { ChatProviderError, type AIProvider, type ChatInput, type ChatResponder } from './ai-types.js';
+import type { UserPreferences } from './preferences.js';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const messageColumns = 'id, role, content, created_at AS "createdAt"';
@@ -102,7 +103,11 @@ export function createChatRouter(pool: Pool, respond?: ChatResponder, provider: 
         if (characters + row.content.length > 24000) break;
         context.unshift(row); characters += row.content.length;
       }
-      const answer = await respond([...context, { role: 'user', content }]);
+      // Re-read for every new turn, including existing conversations. No preference from the
+      // request body is trusted, and a saved selection is never sent while its opt-in is off.
+      const preferences = (await client.query<UserPreferences>('SELECT faith, faith_enabled AS "faithEnabled" FROM users WHERE id = $1', [response.locals.userId])).rows[0];
+      if (!preferences) throw publicError(401, 'Please sign in again.');
+      const answer = await respond([...context, { role: 'user', content }], preferences.faithEnabled ? { faith: preferences.faith } : {});
       if (!answer.trim() || Array.from(answer).length > 8000) throw publicError(502, 'No complete reply was received. Please try again.');
       const userMessage = await client.query(`INSERT INTO chat_messages(conversation_id, role, content) VALUES ($1, 'user', $2) RETURNING ${messageColumns}`, [request.params.id, content]);
       const assistantMessage = await client.query(`INSERT INTO chat_messages(conversation_id, role, content) VALUES ($1, 'assistant', $2) RETURNING ${messageColumns}`, [request.params.id, answer]);

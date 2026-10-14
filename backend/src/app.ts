@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import type { Pool } from 'pg';
 import { createAuthRouter } from './auth.js';
 import { createChatRouter } from './chat.js';
+import { createMoodsRouter } from './moods.js';
+import { createPreferencesRouter } from './preferences.js';
 import type { AIProvider, ChatResponder } from './ai-types.js';
 
 export function createApp(databaseCheck?: () => Promise<void>, pool?: Pool, chatResponder?: ChatResponder, provider: AIProvider = 'gemini') {
@@ -33,6 +35,8 @@ export function createApp(databaseCheck?: () => Promise<void>, pool?: Pool, chat
   if (pool) {
     app.use('/auth', createAuthRouter(pool));
     app.use('/chat', createChatRouter(pool, chatResponder, provider));
+    app.use('/moods', createMoodsRouter(pool));
+    app.use('/preferences', createPreferencesRouter(pool));
   }
   else app.use('/auth', (_request, response) => {
     response.status(503).json({ error: 'Account service is unavailable. Please try again later.' });

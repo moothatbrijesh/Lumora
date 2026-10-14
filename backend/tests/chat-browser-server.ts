@@ -5,7 +5,7 @@ import { Pool } from 'pg';
 import { createDatabasePool, checkDatabase } from '../src/database.js';
 import { migrate } from '../src/migrations.js';
 import { createApp } from '../src/app.js';
-import { ChatProviderError } from '../src/ai-types.js';
+import { ChatProviderError, type ChatContext } from '../src/ai-types.js';
 
 const url = process.env.TEST_DATABASE_URL;
 if (!url || !new URL(url).pathname.endsWith('_test') || process.env.NODE_ENV === 'production') throw new Error('A disposable TEST_DATABASE_URL is required.');
@@ -16,8 +16,10 @@ await admin.query(`CREATE SCHEMA "${schema}"`);
 await migrate(pool);
 let calls = 0;
 let failedOnce = false;
-const app = createApp(() => checkDatabase(pool), pool, async history => {
+const contexts: ChatContext[] = [];
+const app = createApp(() => checkDatabase(pool), pool, async (history, context) => {
   calls++;
+  contexts.push(context ?? {});
   if (history.at(-1)?.content === 'Test a recoverable provider failure.' && !failedOnce) {
     failedOnce = true;
     throw new ChatProviderError(503, 'Test provider is temporarily unavailable.');
@@ -30,7 +32,10 @@ const server = app.listen(0, '127.0.0.1', () => {
   const address = server.address();
   if (address && typeof address !== 'string') process.send?.({ ready: true, port: address.port });
 });
-process.on('message', message => { if (message === 'calls') process.send?.({ calls }); });
+process.on('message', message => {
+  if (message === 'calls') process.send?.({ calls });
+  if (message === 'contexts') process.send?.({ contexts });
+});
 let closing = false;
 async function close() {
   if (closing) return; closing = true;

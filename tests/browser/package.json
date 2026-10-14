@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "test": "node navigation.cjs",
-    "test:chat": "node chat.cjs"
+    "test:chat": "node chat.cjs",
+    "test:wellbeing": "node wellbeing.cjs"
   },
   "engines": {
     "node": ">=24 <25"

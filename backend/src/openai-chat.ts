@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { EnvHttpProxyAgent, fetch as proxyFetch } from 'undici';
 import { diagnoseOpenAI, diagnosticMessages } from './openai-diagnostics.js';
 
-import { ChatProviderError, guidance, type ChatResponder } from './ai-types.js';
+import { ChatProviderError, guidanceForContext, type ChatResponder } from './ai-types.js';
 export { ChatProviderError, guidance, type ChatInput, type ChatResponder } from './ai-types.js';
 
 export function formatOpenAICheckFailure(error: unknown): string {
@@ -12,9 +12,9 @@ export function formatOpenAICheckFailure(error: unknown): string {
 
 // Injecting an SDK client allows contract tests to use a fake HTTP transport, not live billing.
 export function responderFromClient(client: OpenAI, model: string): ChatResponder {
-  return async messages => {
+  return async (messages, context) => {
     try {
-      const response = await client.responses.create({ model, instructions: guidance,
+      const response = await client.responses.create({ model, instructions: guidanceForContext(context),
         input: messages, max_output_tokens: 900, store: false });
       if (response.status !== 'completed') throw new ChatProviderError(502, 'The reply was incomplete. Please try again.', 'response');
       const text = response.output_text?.trim() || response.output.flatMap(item =>

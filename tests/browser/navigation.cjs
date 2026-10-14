@@ -51,6 +51,9 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../backend/.env'), 
     await tab('Home').click();
     await page.getByRole('button', { name: 'Check in with yourself', exact: true }).click();
     await page.getByRole('heading', { name: 'How are you feeling?', exact: true }).waitFor();
+    await page.getByRole('radiogroup', { name: 'How you feel today', exact: true }).waitFor();
+    assert.equal(await page.getByRole('radio').count(), 5);
+    await page.getByLabel('A note about your mood', { exact: true }).waitFor();
     await page.getByRole('link', { name: /back/i }).click();
     await page.getByRole('button', { name: 'See your journey', exact: true }).click();
     await page.getByRole('heading', { name: 'Growth takes many forms.', exact: true }).waitFor();
@@ -59,6 +62,11 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../backend/.env'), 
     await page.getByRole('heading', { name: 'Your story, in your words.', exact: true }).waitFor();
     await tab('Profile').click();
     await page.getByRole('heading', { name: 'Browser Explorer', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Faith and worldview', exact: true }).click();
+    await page.getByRole('heading', { name: 'Faith and worldview', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Prefer not to say', exact: true }).waitFor();
+    assert.equal(await page.getByRole('switch', { name: 'Use my preference in chat', exact: true }).isChecked(), false);
+    await page.getByRole('link', { name: /back/i }).click();
     await page.getByRole('button', { name: 'Check my session', exact: true }).click();
     await activeText('Your session is active.').waitFor();
     await page.getByRole('button', { name: 'Check connection', exact: true }).click();
@@ -110,7 +118,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../backend/.env'), 
     await page.getByRole('heading', { name: 'Begin your journey', exact: true }).waitFor();
     assert.equal(await page.getByRole('tab').count(), 0);
     assert.deepEqual(errors, []);
-    console.log('PASS: registration/login, all five tabs, Mood/Progress and Back, honest feature placeholders, profile/readiness, logout failure/retry, Back after logout, expiry, account switching, browser reload, responsive widths, no runtime errors.');
+    console.log('PASS: registration/login, all five tabs, Mood/Progress/Preferences and Back, journal/goal placeholders, profile/readiness, logout failure/retry, Back after logout, expiry, account switching, browser reload, responsive widths, no runtime errors.');
   } finally {
     await browser.close();
     await pool.query('DELETE FROM users WHERE email = ANY($1::text[])', [[email, secondEmail]]);

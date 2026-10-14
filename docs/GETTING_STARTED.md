@@ -52,7 +52,10 @@ We will finish and check each step before starting the next.
    key and available project quota. See [Step 6](STEP_06.md) for Windows setup and
    free-tier data-use considerations.
 7. **Personal growth features:** add daily quotes, journal, goals, moods,
-   dashboard, profile, and settings with user-specific storage.
+   dashboard, profile, and settings with user-specific storage. Daily mood
+   check-ins and optional faith/worldview chat preferences are implemented;
+   see [Step 7](STEP_07.md). Journal, goals, progress charts, and other settings
+   are still upcoming.
 8. **Quality checks:** add automated tests as features arrive, then validate the
    complete workflow and wire checks into GitHub Actions.
 9. **Deployment:** add deployment configuration, publish the backend and database,

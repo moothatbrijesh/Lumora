@@ -3,15 +3,18 @@
 A supportive personal growth companion for people of every background and belief.
 Built with Expo, React Native, TypeScript, and a Node.js API.
 
-**Current milestone: Step 6 — AI chat integration implemented.** Registration,
-login, profile, navigation, and account-specific chat history are implemented.
+**Current milestone: Step 7 — daily mood check-ins and optional faith preferences.**
+Registration, login, profile, navigation, and account-specific chat history are implemented.
 Chat uses **Gemini by default**, with OpenAI available through explicit backend
 configuration, and supports retries and deletion. Automated checks use test
 providers; **live Gemini validation requires your own API key and available quota**.
-Journal, goals, mood, and progress remain placeholders. Deployment is pending.
+Save a daily mood and optional note, review recent check-ins, and optionally use a
+saved faith or worldview preference in chat. Personalization is off by default.
+Journal, goals, and progress charts remain placeholders. Deployment is pending.
 
 ## Start here
 
+- [Step 7: mood check-ins and faith preferences](docs/STEP_07.md)
 - [Step 6: configure Gemini and use chat](docs/STEP_06.md)
 - [Step 5: main screens, navigation, and browser tests](docs/STEP_05.md)
 - [Step 4: registration, login, and session testing](docs/STEP_04.md)
@@ -116,15 +119,21 @@ an installable app or submit anything to an app store.
 | POST | `/auth/login` | Sign in and create a session |
 | GET | `/auth/me` | Read your profile using a bearer token |
 | POST | `/auth/logout` | Revoke the current session |
+| GET | `/moods?timeZone=Asia%2FKolkata` | Today's check-in and your latest 30 entries |
+| PUT | `/moods/today` | Save or update today's mood and optional note |
+| GET | `/preferences` | Read your faith/worldview selection and chat opt-in |
+| PUT | `/preferences` | Save or clear those preferences |
 
 The health endpoint verifies the API process. Readiness verifies PostgreSQL and
-all three migrations. Unknown routes return a JSON 404. The protected profile endpoint
-uses the session owner; journal, goal, and mood endpoints are not exposed yet.
+all four migrations. Unknown routes return a JSON 404. Personal-data endpoints
+use the signed-in account; journal and goal endpoints are not exposed yet.
 
 For database integration tests, run `docker compose --profile test up -d --wait`
 from the root, then `npm run test:db` from `backend/`.
 
 Chat endpoints and their request formats are documented in [Step 6](docs/STEP_06.md#api-endpoints).
+Mood and preference request formats, privacy behavior, and browser tests are in
+[Step 7](docs/STEP_07.md).
 
 ## Secrets and source control
 

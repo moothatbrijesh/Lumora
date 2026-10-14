@@ -22,6 +22,9 @@ personalization off, or save Prefer not to say to clear the stored selection.
 Lumora is instructed to respect differences within every tradition, avoid
 proselytizing and invented scripture, and keep advice practical and supportive.
 AI responses can still be mistaken; this preference does not guarantee theological accuracy.
+Chat uses an enabled preference as background when relevant, without announcing it on
+every reply. Chat cannot save or change settings: the **Preferences saved.** confirmation
+belongs to this settings screen after a successful save.
 
 ## 1. Get the update on Windows
 

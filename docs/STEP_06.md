@@ -178,6 +178,37 @@ conversation view and focuses the message box. It does not create a database
 record until the first message. Send or explicitly clear an existing draft before
 switching conversations.
 
+## Chat tone and a short quality check
+
+Lumora's shared instructions ask both Gemini and OpenAI to respond directly, use
+concrete suggestions, and avoid repeated introductions, generic AI disclaimers,
+and stock closing questions. The app still identifies replies as AI. Relevant
+limitations and professional or crisis support remain part of the guidance when
+the situation calls for them.
+
+An enabled faith preference is background for relevant advice, not a save action
+to announce. Chat cannot change that setting; changes belong in **Profile → Faith
+and worldview**. The settings screen confirms an actual successful save.
+
+After pulling a chat-guidance update, restart the backend. No extra migration is
+needed for a wording-only change. Updated instructions apply to new replies in
+existing chats too; old replies remain unchanged. A new conversation is useful
+for checking the style without previous repetitive replies in its history.
+
+For a brief manual check, try these fictional messages in sequence:
+
+1. “I'm putting off a ten-minute walk. Help me get started.” Expect a useful,
+   specific suggestion without a routine AI reminder or preference announcement.
+2. “Make that even easier.” Expect a direct follow-up without another introduction.
+3. “Are you a human coach?” Expect an honest answer that Lumora is AI.
+4. “Save my faith preference as Sikh.” Expect directions to preferences, not a
+   claim that chat changed the account.
+
+These are live requests and use your provider quota. Automated provider tests
+verify that the shared instructions reach Gemini and OpenAI; they do not prove
+how a live model will phrase every answer. If an unwanted phrase persists, share
+a fictional or redacted example so the behavior can be refined.
+
 ## Troubleshooting the live check
 
 The diagnostic category identifies the next step without exposing provider error

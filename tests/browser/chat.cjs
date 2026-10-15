@@ -4,6 +4,61 @@ const { spawn } = require('node:child_process');
 const { once } = require('node:events');
 const path = require('node:path');
 
+const phoneSizes = [
+  { width: 390, height: 844, minHistory: 140 },
+  { width: 390, height: 600, minHistory: 140 },
+  { width: 320, height: 568, minHistory: 140 },
+  // A reduced browser viewport exercises the space available when a keyboard is open.
+  // Native keyboard behavior still needs a separate device check.
+  { width: 390, height: 420, minHistory: 100 },
+];
+
+function inside(rect, container, description) {
+  assert.ok(rect && container, `${description}: both elements have a rendered box.`);
+  assert.ok(rect.width > 0 && rect.height > 0, `${description}: the element has usable dimensions.`);
+  assert.ok(rect.x >= container.x - 1 && rect.y >= container.y - 1 &&
+    rect.x + rect.width <= container.x + container.width + 1 &&
+    rect.y + rect.height <= container.y + container.height + 1,
+  `${description}: ${JSON.stringify(rect)} must fit inside ${JSON.stringify(container)}.`);
+}
+
+async function checkPhoneLayout(page, size, state) {
+  await page.setViewportSize({ width: size.width, height: size.height });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const label = `${size.width}×${size.height}, ${state}`;
+  const viewport = { x: 0, y: 0, width: size.width, height: size.height };
+  const history = await page.getByTestId('chat-history').boundingBox();
+  const composer = await page.getByTestId('chat-composer').boundingBox();
+  const input = await page.getByLabel('Message to Lumora', { exact: true }).boundingBox();
+  const send = await page.getByRole('button', { name: 'Send message', exact: true }).boundingBox();
+  inside(history, viewport, `${label}: conversation area`);
+  inside(composer, viewport, `${label}: composer`);
+  inside(input, composer, `${label}: text input`);
+  inside(send, composer, `${label}: Send button`);
+  assert.ok(history.height >= size.minHistory, `${label}: conversation area needs at least ${size.minHistory}px; got ${history.height}px.`);
+  assert.ok(input.height >= 44 && send.height >= 44, `${label}: text input and Send button remain usable.`);
+  assert.ok(history.y + history.height <= composer.y + 1, `${label}: composer must not cover conversation content.`);
+  const overlapWidth = Math.max(0, Math.min(input.x + input.width, send.x + send.width) - Math.max(input.x, send.x));
+  const overlapHeight = Math.max(0, Math.min(input.y + input.height, send.y + send.height) - Math.max(input.y, send.y));
+  assert.ok(overlapWidth * overlapHeight <= 1, `${label}: Send button must not overlap the text input.`);
+  const homeTab = await page.getByRole('tab', { name: 'Home', exact: true }).boundingBox();
+  assert.ok(composer.y + composer.height <= homeTab.y + 1, `${label}: composer must remain above navigation.`);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${label}: no horizontal page overflow.`);
+  if (state === 'empty' || state === 'long draft') {
+    const heading = await page.getByRole('heading', { name: 'What’s on your mind?', exact: true }).boundingBox();
+    inside(heading, history, `${label}: opening prompt must not scroll out of view`);
+  }
+}
+
+async function checkProviderDisclosure(page, provider) {
+  await page.getByRole('button', { name: 'About AI chat', exact: true }).click();
+  await page.getByText(`Your message and recent conversation history go to ${provider} for replies. Conversations are saved to your account; you can delete them.`, { exact: true }).waitFor();
+  if (provider === 'Gemini (Google)') await page.getByText(/If this project uses Gemini’s free tier/).waitFor();
+  else assert.equal(await page.getByText(/If this project uses Gemini’s free tier/).count(), 0);
+  await page.getByRole('button', { name: 'Close chat panel', exact: true }).click();
+  await page.getByRole('button', { name: 'Close chat panel', exact: true }).waitFor({ state: 'hidden' });
+}
+
 (async () => {
   const child = spawn(process.execPath, ['--import', 'tsx', 'tests/chat-browser-server.ts'], {
     cwd: path.resolve(__dirname, '../../backend'), stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
@@ -55,8 +110,7 @@ const path = require('node:path');
     releaseInitialStatus();
     await page.getByText(/AI replies are unavailable until Gemini \(Google\) is configured/).waitFor();
     await page.waitForFunction(() => !document.querySelector('[aria-label="Message to Lumora"]')?.disabled && !document.querySelector('[aria-label="Message to Lumora"]')?.readOnly);
-    await page.getByText(/Your message and recent conversation history go to Gemini \(Google\)/).waitFor();
-    await page.getByText(/If this project uses Gemini’s free tier/).waitFor();
+    await checkProviderDisclosure(page, 'Gemini (Google)');
     await input.fill('A draft while the provider is not configured.');
     assert.equal(await page.getByRole('button', { name: 'Send message', exact: true }).isDisabled(), true);
     assert.equal(await page.getByRole('button', { name: 'New conversation', exact: true }).isDisabled(), true, 'Switching conversations must not discard a draft.');
@@ -75,17 +129,33 @@ const path = require('node:path');
     statusMode = 'missing';
     statusProvider = 'openai';
     await page.getByRole('button', { name: 'Check chat again', exact: true }).click();
-    await page.getByText(/Your message and recent conversation history go to OpenAI/).waitFor();
-    assert.equal(await page.getByText(/If this project uses Gemini’s free tier/).count(), 0);
+    await checkProviderDisclosure(page, 'OpenAI');
     assert.equal(await input.inputValue(), 'Keep this draft when readiness recovers.');
     assert.equal(await page.getByRole('button', { name: 'Send message', exact: true }).isDisabled(), true);
     statusMode = 'ready';
     statusProvider = 'gemini';
     await page.getByRole('button', { name: 'Check chat again', exact: true }).click();
-    await page.getByText(/Your message and recent conversation history go to Gemini \(Google\)/).waitFor();
+    await checkProviderDisclosure(page, 'Gemini (Google)');
     await page.waitForFunction(() => !document.querySelector('[aria-label="Message to Lumora"]')?.readOnly);
     assert.equal(await page.getByRole('button', { name: 'Send message', exact: true }).isDisabled(), false);
     await page.getByRole('button', { name: 'Clear draft', exact: true }).click();
+    for (const size of phoneSizes) {
+      await checkPhoneLayout(page, size, 'empty');
+      if (process.env.LUMORA_SCREENSHOT_PATH && (size.height === 600 || size.width === 320)) {
+        const screenshot = path.parse(process.env.LUMORA_SCREENSHOT_PATH);
+        await page.screenshot({ path: path.join(screenshot.dir, `${screenshot.name}-empty-${size.width}x${size.height}${screenshot.ext}`) });
+      }
+    }
+    const longDraft = 'A multiline draft should leave space to read the conversation.\n'.repeat(45);
+    await input.fill(longDraft);
+    for (const size of phoneSizes) {
+      await checkPhoneLayout(page, size, 'long draft');
+      inside(await page.getByRole('button', { name: 'Clear draft', exact: true }).boundingBox(),
+        await page.getByTestId('chat-composer').boundingBox(), `${size.width}×${size.height}: clear action stays visible`);
+      assert.equal(await input.inputValue(), longDraft, 'Resizing the viewport preserves the complete draft.');
+    }
+    await page.getByRole('button', { name: 'Clear draft', exact: true }).click();
+    await page.setViewportSize({ width: 390, height: 600 });
     await input.fill('Test a recoverable provider failure.');
     await page.getByRole('button', { name: 'Send message', exact: true }).click();
     await page.getByText(/Your draft is kept/).waitFor();
@@ -103,23 +173,38 @@ const path = require('node:path');
     await page.getByRole('button', { name: 'Send message', exact: true }).click();
     await page.waitForFunction(text => [...document.querySelectorAll('div')].filter(el => el.childElementCount === 0 && el.textContent === text).length === 2, fixture);
     assert.equal(await calls(), 3);
+    await checkPhoneLayout(page, phoneSizes[1], 'saved conversation');
+    await page.waitForFunction(text => {
+      const replies = [...document.querySelectorAll('div')].filter(el => el.childElementCount === 0 && el.textContent === text);
+      const lastReply = replies.at(-1)?.getBoundingClientRect();
+      const history = document.querySelector('[data-testid="chat-history"]')?.getBoundingClientRect();
+      return lastReply && history && lastReply.bottom <= history.bottom + 1 && lastReply.bottom > history.top + 20;
+    }, fixture);
     await page.getByRole('button', { name: 'New conversation', exact: true }).click();
     assert.equal(await page.getByText(fixture, { exact: true }).count(), 0);
     assert.equal(await input.evaluate(element => element === document.activeElement), true);
+    await checkPhoneLayout(page, phoneSizes[1], 'empty');
+    await page.getByRole('button', { name: 'Conversation history', exact: true }).click();
     await page.getByRole('button', { name: 'Open conversation: Test a recoverable provider failure.', exact: true }).click();
+    await page.getByRole('button', { name: 'Close chat panel', exact: true }).waitFor({ state: 'hidden' });
     await page.getByText('Recover a response lost after saving.', { exact: true }).waitFor();
     assert.equal(await page.getByText(fixture, { exact: true }).count(), 2);
     if (process.env.LUMORA_SCREENSHOT_PATH) await page.screenshot({ path: process.env.LUMORA_SCREENSHOT_PATH });
+    await page.getByRole('button', { name: 'Conversation history', exact: true }).click();
     await page.getByRole('button', { name: 'Delete conversation', exact: true }).click();
     await page.getByRole('button', { name: 'Cancel deletion', exact: true }).click();
     assert.equal(await page.getByText(fixture, { exact: true }).count(), 2);
     await page.getByRole('button', { name: 'Delete conversation', exact: true }).click();
     await page.getByRole('button', { name: 'Delete permanently', exact: true }).click();
+    await page.getByRole('button', { name: 'Close chat panel', exact: true }).waitFor({ state: 'hidden' });
     await page.getByRole('heading', { name: 'What’s on your mind?', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Conversation history', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: /^Open conversation:/ }).count(), 0);
+    await page.getByRole('button', { name: 'Close chat panel', exact: true }).click();
+    await page.getByRole('button', { name: 'Close chat panel', exact: true }).waitFor({ state: 'hidden' });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     assert.deepEqual(errors, []);
-    console.log('PASS: real chat UI and database with test-only provider; provider disclosure, unavailable/readiness recovery, editable drafts, new-chat focus, retry, lost-response deduplication, history, deletion/cancel, and no runtime errors. No live AI calls made.');
+    console.log('PASS: real chat UI and database with test-only provider; phone layouts at 390×844, 390×600, 320×568, and 390×420; visible empty prompt and bounded long drafts; latest reply scrolling; provider disclosure, unavailable/readiness recovery, editable drafts, new-chat focus, retry, lost-response deduplication, history, deletion/cancel, and no runtime errors. No live AI calls made.');
   } finally {
     await browser?.close();
     const stopped = once(child, 'exit'); child.kill('SIGTERM');

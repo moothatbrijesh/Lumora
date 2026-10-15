@@ -149,10 +149,21 @@ Lumora, sign in, and open **Chat**. If the setup notice is still visible, tap
 becomes available once the backend reports a configured key; a successful
 `ai:check` confirms that the provider also accepts it.
 
-Start a new conversation and send a fictional test such as “Help me plan a study
-routine for a fictional student.” A loading message should become a real reply.
-Switch to a new conversation and back to check saved history. Delete a disposable
-conversation to check the confirmation.
+Start a new conversation, type a fictional test such as “Help me plan a study
+routine for a fictional student,” and tap the upward arrow beside the message
+box to send it. A loading message should become a real reply.
+Use the clock button (**Conversation history**) to reopen a saved conversation.
+To delete the current conversation, open history and choose **Delete conversation**;
+confirm only for a disposable test conversation. The information button
+(**About AI chat**) explains where messages go and how they are stored.
+
+On a narrow screen, the message box and Send button stay together above the tabs,
+while the conversation scrolls separately. To check this in Chrome on Windows,
+press **Ctrl+Shift+I**, then **Ctrl+Shift+M**, choose **Responsive**, and try
+**390 × 600** and **320 × 568**. The “What’s on your mind?” heading should appear
+at the top of a new chat. A long draft should scroll inside the message box without
+pushing Send or the tabs offscreen. This previews the web layout; it does not test
+a native Android keyboard or Expo Go.
 
 If Expo is not running, open a second PowerShell window and run these separately:
 

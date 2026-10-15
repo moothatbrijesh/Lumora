@@ -38,7 +38,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../backend/.env'), 
     await page.getByRole('heading', { name: 'Welcome, Browser Explorer.' }).waitFor();
     assert.equal(await page.getByRole('tab').count(), 5);
     await tab('Chat').click();
-    await page.getByRole('heading', { name: 'A space to talk it through.', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'What’s on your mind?', exact: true }).waitFor();
     await page.getByLabel('Message to Lumora', { exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Send message', exact: true }).isDisabled(), true);
     for (const [name, heading, cardTitle] of [['Journal', 'Your story, in your words.', 'Your journal is taking shape'], ['Goals', 'Grow at your own pace.', 'Make room for a goal']]) {

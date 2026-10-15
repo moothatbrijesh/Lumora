@@ -1,0 +1,39 @@
+name: lumora
+
+# Local development only. These credentials are examples, not production secrets.
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: lumora
+      POSTGRES_PASSWORD: lumora_local_only
+      POSTGRES_DB: lumora
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lumora -d lumora"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+
+  db-test:
+    image: postgres:17-bookworm
+    profiles: [test]
+    environment:
+      POSTGRES_USER: lumora
+      POSTGRES_PASSWORD: lumora_test_only
+      POSTGRES_DB: lumora_test
+    ports:
+      - "127.0.0.1:5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lumora -d lumora_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  postgres_data:

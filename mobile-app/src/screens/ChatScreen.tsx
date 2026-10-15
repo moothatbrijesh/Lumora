@@ -139,7 +139,6 @@ export function ChatScreen() {
             <Ionicons name="information-circle-outline" size={22} color={colors.primary} accessible={false} aria-hidden={true} />
           </Pressable>
         </View>
-        <Text style={styles.provider}>AI chat · Messages go to {providerLabel}</Text>
       </View>
       <ScrollView ref={historyRef} testID="chat-history" style={styles.history} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
         {loading ? <ActivityIndicator accessibilityLabel="Loading conversations" color={colors.primary} /> : null}
@@ -150,7 +149,6 @@ export function ChatScreen() {
         {messages.length === 0 ? <View style={styles.welcome}>
           <Text accessibilityRole="header" style={ui.heading}>What’s on your mind?</Text>
           <Text style={ui.body}>Explore a decision, find motivation, or choose one small step forward.</Text>
-          {provider === 'gemini' && <Text style={ui.small}>On Gemini’s free tier, Google may use chats to improve its products. Try a fictional example.</Text>}
           {['Help me plan a manageable goal.', 'How can I make a difficult decision?'].map(prompt => <Pressable key={prompt} accessibilityRole="button" disabled={busy}
             accessibilityState={{ disabled: busy }} onPress={() => { setDraft(prompt); composerRef.current?.focus(); }} style={({ pressed }) => [styles.prompt, pressed && ui.dim]}>
             <Text style={styles.chipText}>{prompt}</Text>
@@ -220,12 +218,11 @@ export function ChatScreen() {
 const styles = StyleSheet.create({
   screen: { minHeight: 0 },
   chat: { flex: 1, minHeight: 0, width: '100%', maxWidth: 720, alignSelf: 'center' },
-  toolbar: { paddingHorizontal: 12, paddingVertical: 6, gap: 4, borderBottomWidth: 1, borderBottomColor: colors.border },
+  toolbar: { paddingHorizontal: 12, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
   toolbarActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   newChat: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 8, borderRadius: 14, backgroundColor: colors.lavender },
   actionText: { color: colors.primary, fontSize: 14, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
   iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
-  provider: { color: colors.muted, fontSize: 11, lineHeight: 16 },
   history: { flex: 1, minHeight: 0 },
   messages: { padding: 12, gap: 14, flexGrow: 1 },
   welcome: { backgroundColor: colors.lavender, padding: 16, borderRadius: 20, gap: 12 },
